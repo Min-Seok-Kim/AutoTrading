@@ -1,4 +1,7 @@
+
 spring:
   upbit:
     access-key: ${UPBIT_ACCESS_KEY}
     secret-key: ${UPBIT_SECRET_KEY}
+server:
+  port: 8084
