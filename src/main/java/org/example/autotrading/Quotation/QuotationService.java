@@ -1,4 +1,4 @@
-package org.example.autotrading;
+package org.example.autotrading.Quotation;
 
 
 import lombok.RequiredArgsConstructor;
@@ -46,6 +46,22 @@ public class QuotationService {
             return ResponseEntity.ok().body(Objects.requireNonNull(response.body()).string());
         } catch (IOException e) {
             throw new RuntimeException("Type mismatch error. Check the parameters type!");
+        }
+    }
+
+    public ResponseEntity<?> selectOverbook(String market) {
+        OkHttpClient client = new OkHttpClient();
+
+        Request request = new Request.Builder()
+                .url("https://api.upbit.com/v1/orderbook?markets=" + market)
+                .get()
+                .addHeader("accept", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            return ResponseEntity.ok().body(Objects.requireNonNull(response.body()).string());
+        } catch (IOException e) {
+            throw new RuntimeException( "Invalid parameter. Check the given value!");
         }
     }
 }

@@ -1,10 +1,9 @@
-package org.example.autotrading;
+package org.example.autotrading.Quotation;
 
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,5 +20,10 @@ public class QuotationController {
     @GetMapping("/select/ticker")
     public ResponseEntity<?> selectTicker(@RequestParam(name = "market") String market) {
         return quotationService.selectTicker(market);
+    }
+
+    @GetMapping("/select/overbook")
+    public ResponseEntity<?> selectOverbook(@RequestParam(name = "market") String market) {
+        return quotationService.selectOverbook(market);
     }
 }

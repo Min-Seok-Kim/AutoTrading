@@ -1,7 +1,8 @@
-package org.example.autotrading;
+package org.example.autotrading.Accounts.Controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.example.autotrading.Accounts.AccountsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;

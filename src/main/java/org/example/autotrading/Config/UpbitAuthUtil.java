@@ -1,18 +1,12 @@
-package org.example.autotrading;
+package org.example.autotrading.Config;
 
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import lombok.RequiredArgsConstructor;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.UUID;
 
 
