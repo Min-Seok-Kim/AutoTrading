@@ -9,6 +9,7 @@ import lombok.Setter;
 public class MockOrderDto {
     private String market;
     private String side;
+    private String orderType;
     private double price;
     private double volume;
 }
