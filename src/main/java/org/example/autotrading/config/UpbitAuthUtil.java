@@ -1,4 +1,4 @@
-package org.example.autotrading.Config;
+package org.example.autotrading.config;
 
 
 import com.auth0.jwt.JWT;

@@ -1,7 +1,8 @@
-package org.example.autotrading.Quotation;
+package org.example.autotrading.quotation.controller;
 
 
 import lombok.RequiredArgsConstructor;
+import org.example.autotrading.quotation.service.QuotationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;

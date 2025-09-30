@@ -1,7 +1,13 @@
+server:
+  port: 8084
 
 spring:
   upbit:
     access-key: ${UPBIT_ACCESS_KEY}
     secret-key: ${UPBIT_SECRET_KEY}
-server:
-  port: 8084
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/AutoTrading?serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${USERNAME}
+    password: ${PASSWORD}

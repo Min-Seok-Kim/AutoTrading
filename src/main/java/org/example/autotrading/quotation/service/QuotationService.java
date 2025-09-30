@@ -1,4 +1,4 @@
-package org.example.autotrading.Quotation;
+package org.example.autotrading.quotation.service;
 
 
 import lombok.RequiredArgsConstructor;

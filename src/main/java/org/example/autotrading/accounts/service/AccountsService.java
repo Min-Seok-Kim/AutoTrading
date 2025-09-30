@@ -1,11 +1,11 @@
-package org.example.autotrading.Accounts;
+package org.example.autotrading.accounts.service;
 
 
 import lombok.RequiredArgsConstructor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.example.autotrading.Config.UpbitAuthUtil;
+import org.example.autotrading.config.UpbitAuthUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
