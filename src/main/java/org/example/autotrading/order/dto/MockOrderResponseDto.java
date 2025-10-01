@@ -1,5 +1,6 @@
 package org.example.autotrading.order.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -15,5 +16,8 @@ public record MockOrderResponseDto(
         BigDecimal price,
         BigDecimal volume,
         boolean executed,
-        BigDecimal executedPrice
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        BigDecimal executedPrice,
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        BigDecimal totalPrice
 ) {}

@@ -57,7 +57,7 @@ public class OrderService {
 
         if (mockOrderRequestDto.getOrderType().equals("MARKET")) {
             executed = true;
-            executedPrice = currentPrice;
+            executedPrice = currentPrice; // 단가 그대로
         } else {
             if (mockOrderRequestDto.getSide().equals("BUY")) {
                 executed = mockOrderRequestDto.getPrice().compareTo(currentPrice) >= 0;
@@ -80,6 +80,10 @@ public class OrderService {
 
         mockOrderRepository.save(mockOrderEntity);
 
+        BigDecimal totalPrice = executed
+                ? executedPrice.multiply(mockOrderRequestDto.getVolume())
+                : BigDecimal.ZERO;
+
         MockOrderResponseDto responseDto = new MockOrderResponseDto(
                 mockOrderEntity.getMarket(),
                 mockOrderEntity.getSide(),
@@ -87,7 +91,8 @@ public class OrderService {
                 mockOrderEntity.getPrice(),
                 mockOrderEntity.getVolume(),
                 mockOrderEntity.isExecuted(),
-                mockOrderEntity.getExecutedPrice()
+                mockOrderEntity.getExecutedPrice(),
+                totalPrice
         );
 
         return ResponseEntity.ok().body(responseDto);
