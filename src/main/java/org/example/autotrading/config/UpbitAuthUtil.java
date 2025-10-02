@@ -23,7 +23,9 @@ public class UpbitAuthUtil {
     public String createToken() {
         System.out.println("ac: " + accessKey);
         System.out.println("sc: " + secretKey);
-        Algorithm algorithm = Algorithm.HMAC256(secretKey.getBytes(StandardCharsets.UTF_8));
+
+
+        Algorithm algorithm = Algorithm.HMAC512(secretKey.getBytes(StandardCharsets.UTF_8));
         String jwtToken = JWT.create()
                 .withClaim("access_key", accessKey)
                 .withClaim("nonce", UUID.randomUUID().toString())

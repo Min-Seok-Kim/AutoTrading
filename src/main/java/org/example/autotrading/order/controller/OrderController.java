@@ -7,9 +7,11 @@ import org.example.autotrading.order.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,5 +21,10 @@ public class OrderController {
     @PostMapping("/mock/order")
     public ResponseEntity<?> mockOrder(@RequestBody MockOrderRequestDto mockOrderRequestDto) throws IOException {
         return orderService.mockOrder(mockOrderRequestDto);
+    }
+
+    @PostMapping("/sell-rvn")
+    public ResponseEntity<?> sellRvn(@RequestParam double volume) throws NoSuchAlgorithmException {
+        return orderService.sellRvn(volume);
     }
 }
