@@ -1,6 +1,10 @@
 package org.example.autotrading.quotation.service;
 
 
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -9,11 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class QuotationService {
+    private final ObjectMapper objectMapper;
 
     public ResponseEntity<?> selectMarket() {
         OkHttpClient client = new OkHttpClient();
@@ -62,6 +69,18 @@ public class QuotationService {
             return ResponseEntity.ok().body(Objects.requireNonNull(response.body()).string());
         } catch (IOException e) {
             throw new RuntimeException( "Invalid parameter. Check the given value!");
+        }
+    }
+
+    public ResponseEntity<?> selectProfitLoss(String market) {
+        ResponseEntity<?> myAccount = selectTicker(market);
+        String trade_price = (String) myAccount.getBody();
+
+        List<Map<String, Object>> accounts;
+        try {
+            accounts = objectMapper.readValue(trade_price, new TypeReference<>() {});
+        } catch (IOException e) {
+            throw new RuntimeException("계좌 JSON 파싱 실패", e);
         }
     }
 }
