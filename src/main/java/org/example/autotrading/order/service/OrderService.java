@@ -161,4 +161,13 @@ public class OrderService {
             throw new RuntimeException("RVN 시장가 매도 실패", e);
         }
     }
+
+    public ResponseEntity<?> buyRvn(double volume) throws NoSuchAlgorithmException {
+        Map<String, String> params = new HashMap<>();
+        params.put("market", "KRW-RVN");
+        params.put("side", "bid");
+        params.put("ord_type", "market");
+        params.put("volume", String.valueOf(volume));
+        String queryString = params.entrySet().stream()
+    }
 }

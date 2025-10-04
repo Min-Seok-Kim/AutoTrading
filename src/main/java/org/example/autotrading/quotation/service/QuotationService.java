@@ -76,8 +76,10 @@ public class QuotationService {
     }
 
     public ResponseEntity<?> selectProfitLoss(String market) {
+        // 현재가 응답
         ResponseEntity<?> currentPriceResponse = selectTicker(market);
 
+        // 현재가 body
         String body = (String) currentPriceResponse.getBody();
 
         List<Map<String, Object>> tickerList;
@@ -104,12 +106,13 @@ public class QuotationService {
             throw new RuntimeException("계좌 JSON 파싱 실패", e);
         }
 
-        String currency = market.replace("KRW-", "");
+        String currency = market.replace("KRW-", ""); // RVN
         Map<String, Object> myCoin = accounts.stream()
                 .filter(acc -> currency.equals(acc.get("currency")))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("해당 코인 없음"));
 
+        // 주문 가능 수량 또는 금액.
         double balance = Double.parseDouble(myCoin.get("balance").toString());
         double avgBuyPrice = Double.parseDouble(myCoin.get("avg_buy_price").toString());
 

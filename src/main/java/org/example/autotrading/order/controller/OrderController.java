@@ -27,4 +27,9 @@ public class OrderController {
     public ResponseEntity<?> sellRvn(@RequestParam double volume) throws NoSuchAlgorithmException {
         return orderService.sellRvn(volume);
     }
+
+    @PostMapping("/buy-rvn")
+    public ResponseEntity<?> buyRvn(@RequestParam double volume) throws NoSuchAlgorithmException {
+        return orderService.buyRvn(volume);
+    }
 }
