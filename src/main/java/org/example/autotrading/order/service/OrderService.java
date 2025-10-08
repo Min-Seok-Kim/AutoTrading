@@ -162,12 +162,57 @@ public class OrderService {
         }
     }
 
-    public ResponseEntity<?> buyRvn(double volume) throws NoSuchAlgorithmException {
+    public ResponseEntity<?> buyRvn(int price) throws NoSuchAlgorithmException {
         Map<String, String> params = new HashMap<>();
+
         params.put("market", "KRW-RVN");
         params.put("side", "bid");
-        params.put("ord_type", "market");
-        params.put("volume", String.valueOf(volume));
+        params.put("ord_type", "price");
+        params.put("price", String.valueOf(price));
+
+        // Map<String, String> 형태의 params를 쿼리스트링으로 변환
+        // entryset()은 Map의 키와 값 쌍을 Set<Map.Entry<K, V>> 형태로 반환
+        // .stream()은 반환된 Set을 stream으로 변환
+        // map(e -> e.getKey() + "=" + e.getValue())은 각 Map.Entry(key-value)쌍을 "key=value" 문자열로 변환 -> ex) "market = KRW-BTC"
+        // .collect(Collectors.joining("&"))은 "&"를 구분자로 하여 모든 문자열을 하나로 합침 -> "market=BTC-KRW&count=10"
+        // 촤종 결과 -> ex) String queryString = "market=BTC-KRW&count=10";
         String queryString = params.entrySet().stream()
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining("&"));
+
+        MessageDigest md = MessageDigest.getInstance("SHA-512");
+        md.update(queryString.getBytes(StandardCharsets.UTF_8));
+        StringBuilder sb = new StringBuilder();
+        for (byte b : md.digest()) {
+            sb.append(String.format("%02x", b));
+        }
+
+        String queryHash = sb.toString();
+
+        Algorithm algorithm = Algorithm.HMAC512(secretKey.getBytes(StandardCharsets.UTF_8));
+        String jwtToken = JWT.create()
+                .withClaim("access_key", accessKey)
+                .withClaim("nonce", UUID.randomUUID().toString())
+                .withClaim("query_hash", queryHash)
+                .withClaim("query_hash_alg", "SHA512")
+                .sign(algorithm);
+
+        String authHeader = "Bearer " + jwtToken;
+
+        String jsonBody = new Gson().toJson(params);
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(BASE_URL + "/v1/orders")
+                .post(RequestBody.create(jsonBody, okhttp3.MediaType.parse("application/json; charset=utf-8")))
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", authHeader)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String resBody = Objects.requireNonNull(response.body()).string();
+            return ResponseEntity.ok().body(resBody);
+        } catch (IOException e) {
+            throw new RuntimeException("RVN 시장가 매수 실패", e);
+        }
     }
 }
