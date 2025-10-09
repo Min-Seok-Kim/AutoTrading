@@ -160,13 +160,13 @@ public class QuotationService {
         try {
             BigDecimal currentPrice = getCurrentPrice();
 
-            log.info("현재가: {}", currentPrice);
+            log.info("현재가: {}", currentPrice.toPlainString());
 
             if(previousPrice.compareTo(BigDecimal.ZERO) > 0) {
                 if(currentPrice.compareTo(previousPrice) < 0) {
-                    log.info("📉 매수 기회 감지 (이전: {}, 현재: {})", previousPrice, currentPrice);
+                    log.info("📉 매수 기회 감지 (이전: {}, 현재: {})", previousPrice.toPlainString(), currentPrice.toPlainString());
                 } else {
-                    log.info("📈 상승 중 (이전: {}, 현재: {})", previousPrice, currentPrice);
+                    log.info("📈 상승 중 (이전: {}, 현재: {})", previousPrice.toPlainString(), currentPrice.toPlainString());
                 }
             }
 
@@ -177,7 +177,7 @@ public class QuotationService {
     }
 
     private BigDecimal getCurrentPrice() throws IOException {
-        String url = "https://api.upbit.com/v1/ticker?markets=" + "KRW-RVN";
+        String url = "https://api.upbit.com/v1/ticker?markets=" + "KRW-BTC";
         Request request = new Request.Builder()
                 .url(url)
                 .get()
