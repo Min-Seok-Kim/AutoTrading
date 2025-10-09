@@ -49,4 +49,8 @@ public class QuotationController {
      */
     @GetMapping("/select/profit-loss")
     public ResponseEntity<?> selectProfitLoss(@RequestParam String market) {return quotationService.selectProfitLoss(market);}
+
+
+
+
 }

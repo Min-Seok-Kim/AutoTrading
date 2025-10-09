@@ -2,18 +2,20 @@ package org.example.autotrading.quotation.service;
 
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.example.autotrading.accounts.service.AccountsService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +23,18 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QuotationService {
     private final ObjectMapper objectMapper;
     private final AccountsService accountsService;
+    private BigDecimal previousPrice = BigDecimal.ZERO;
+    private final OkHttpClient client = new OkHttpClient();
 
+    /**
+     * 코인 조회
+     * @return
+     */
     public ResponseEntity<?> selectMarket() {
-        OkHttpClient client = new OkHttpClient();
-
         Request request = new Request.Builder()
                 .url("https://api.upbit.com/v1/market/all")
                 .get()
@@ -41,9 +48,11 @@ public class QuotationService {
         }
     }
 
+    /**
+     * 현재가 조회
+     * @return
+     */
     public ResponseEntity<?> selectTicker(String market) {
-        OkHttpClient client = new OkHttpClient();
-
         String url = "https://api.upbit.com/v1/ticker?markets=" + market;
 
         Request request = new Request.Builder()
@@ -59,9 +68,11 @@ public class QuotationService {
         }
     }
 
+    /**
+     * 호가 조회
+     * @return
+     */
     public ResponseEntity<?> selectOverbook(String market) {
-        OkHttpClient client = new OkHttpClient();
-
         Request request = new Request.Builder()
                 .url("https://api.upbit.com/v1/orderbook?markets=" + market)
                 .get()
@@ -75,6 +86,10 @@ public class QuotationService {
         }
     }
 
+    /**
+     * 손익 조회
+     * @return
+     */
     public ResponseEntity<?> selectProfitLoss(String market) {
         // 현재가 응답
         ResponseEntity<?> currentPriceResponse = selectTicker(market);
@@ -133,5 +148,46 @@ public class QuotationService {
         result.put("profit_rate", profitRate);
 
         return ResponseEntity.ok().body(result);
+    }
+
+    /**
+     * 자동 현재가 조회
+     *
+     * @return
+     */
+    @Scheduled(fixedRate=5000)
+    public void autoSelectTicker() {
+        try {
+            BigDecimal currentPrice = getCurrentPrice();
+
+            log.info("현재가: {}", currentPrice);
+
+            if(previousPrice.compareTo(BigDecimal.ZERO) > 0) {
+                if(currentPrice.compareTo(previousPrice) < 0) {
+                    log.info("📉 매수 기회 감지 (이전: {}, 현재: {})", previousPrice, currentPrice);
+                } else {
+                    log.info("📈 상승 중 (이전: {}, 현재: {})", previousPrice, currentPrice);
+                }
+            }
+
+            previousPrice = currentPrice;
+        } catch (Exception e) {
+            log.error("가격 조회 실패: {}", e.getMessage());
+        }
+    }
+
+    private BigDecimal getCurrentPrice() throws IOException {
+        String url = "https://api.upbit.com/v1/ticker?markets=" + "KRW-RVN";
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .addHeader("accept", "application/json")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            String body = Objects.requireNonNull(response.body()).string();
+            List<Map<String, Object>> tickerList = objectMapper.readValue(body, new TypeReference<>() {});
+            return new BigDecimal(tickerList.get(0).get("trade_price").toString());
+        }
     }
 }
