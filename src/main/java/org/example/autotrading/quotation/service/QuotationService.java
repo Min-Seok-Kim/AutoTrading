@@ -10,16 +10,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.example.autotrading.accounts.service.AccountsService;
+import org.example.autotrading.order.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +26,15 @@ import java.util.Objects;
 public class QuotationService {
     private final ObjectMapper objectMapper;
     private final AccountsService accountsService;
+    private final OrderService orderService;
     private BigDecimal previousPrice = BigDecimal.ZERO;
+    private BigDecimal balance = BigDecimal.ZERO;
+    private final BigDecimal MIN_ORDER_KRW = new BigDecimal("5000");
     private final OkHttpClient client = new OkHttpClient();
+
+    private final Queue<BigDecimal> recentPrices = new LinkedList<>();
+    private static final int MOVING_AVERAGE_PERIOD = 20;
+    private boolean hasCoin = false;
 
     /**
      * 코인 조회
@@ -159,21 +165,64 @@ public class QuotationService {
     public void autoSelectTicker() {
         try {
             BigDecimal currentPrice = getCurrentPrice();
-
             log.info("현재가: {}", currentPrice.toPlainString());
 
-            if(previousPrice.compareTo(BigDecimal.ZERO) > 0) {
-                if(currentPrice.compareTo(previousPrice) < 0) {
-                    log.info("📉 매수 기회 감지 (이전: {}, 현재: {})", previousPrice.toPlainString(), currentPrice.toPlainString());
-                } else {
-                    log.info("📈 상승 중 (이전: {}, 현재: {})", previousPrice.toPlainString(), currentPrice.toPlainString());
+            if(recentPrices.size() >= MOVING_AVERAGE_PERIOD) recentPrices.poll();
+
+            recentPrices.offer(currentPrice);
+
+            if (recentPrices.size() == MOVING_AVERAGE_PERIOD) {
+                BigDecimal movingAverage = calculateMovingAverage();
+                log.info("📊 이동평균선(20틱): {}", movingAverage.toPlainString());
+
+                // 매수 조건
+                if (currentPrice.compareTo(movingAverage) < 0 && !hasCoin) {
+                    log.info("📉 매수 신호 감지 (현재가 < 이동평균선)");
+
+                    // 실제 체결 수량 반환
+                    ResponseEntity<?> buyResponse = orderService.buyRvn(5000);
+                    String body = (String) buyResponse.getBody();
+
+                    Map<String, Object> buyResult = objectMapper.readValue(body, new TypeReference<>(){});
+
+                    BigDecimal executedCoin = new BigDecimal(buyResult.get("executed_volume").toString());
+                    BigDecimal lockedAmount = new BigDecimal(buyResult.get("locked").toString());
+                    if (lockedAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        balance = executedCoin.divide(currentPrice, 8, RoundingMode.HALF_UP); // 코인 수량 계산
+                        hasCoin = true;
+                        log.info("✅ {} 원어치 매수 완료, 코인 수량: {}", lockedAmount, balance);
+                    }
+                }
+
+                // 매도 조건
+                else if (currentPrice.compareTo(movingAverage) > 0 && hasCoin) {
+                    log.info("📈 매도 신호 감지 (현재가 > 이동평균선)");
+
+                    ResponseEntity<?> sellResponse = orderService.sellRvn(balance);
+                    String body = (String) sellResponse.getBody();
+
+                    Map<String, Object> sellResult = objectMapper.readValue(body, new TypeReference<>(){});
+
+                    BigDecimal executedCoin = new BigDecimal(sellResult.get("executed_volume").toString());
+                    BigDecimal tradePrice = new BigDecimal(sellResult.get("price").toString());
+
+                    BigDecimal soldAmount = executedCoin.multiply(tradePrice);
+                    if (soldAmount.compareTo(BigDecimal.ZERO) > 0) {
+                        log.info("✅ {} 코인 매도 완료, 매도 금액: {}", balance, soldAmount);
+                        balance = BigDecimal.ZERO;
+                        hasCoin = false;
+                    }
                 }
             }
-
-            previousPrice = currentPrice;
         } catch (Exception e) {
-            log.error("가격 조회 실패: {}", e.getMessage());
+            log.error("자동매매 실행 중 오류 발생: {}", e.getMessage());
         }
+    }
+
+    private BigDecimal calculateMovingAverage() {
+        return recentPrices.stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(BigDecimal.valueOf(MOVING_AVERAGE_PERIOD), RoundingMode.HALF_UP);
     }
 
     private BigDecimal getCurrentPrice() throws IOException {

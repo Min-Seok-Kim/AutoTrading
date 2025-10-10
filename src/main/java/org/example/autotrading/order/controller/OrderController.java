@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.NoSuchAlgorithmException;
 
 @RestController
@@ -24,7 +25,7 @@ public class OrderController {
     }
 
     @PostMapping("/sell-rvn")
-    public ResponseEntity<?> sellRvn(@RequestParam double volume) throws NoSuchAlgorithmException {
+    public ResponseEntity<?> sellRvn(@RequestParam BigDecimal volume) throws NoSuchAlgorithmException {
         return orderService.sellRvn(volume);
     }
 

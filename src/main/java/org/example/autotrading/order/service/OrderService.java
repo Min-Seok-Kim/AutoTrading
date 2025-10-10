@@ -114,11 +114,11 @@ public class OrderService {
         return ResponseEntity.ok().body(responseDto);
     }
 
-    public ResponseEntity<?> sellRvn(double volume) throws NoSuchAlgorithmException {
+    public ResponseEntity<?> sellRvn(BigDecimal volume) throws NoSuchAlgorithmException {
         OkHttpClient client = new OkHttpClient();
 
         Map<String, String> params = new HashMap<>();
-        params.put("market", "KRW-RVN");
+        params.put("market", "KRW-BTC");
         params.put("side", "ask");
         params.put("volume", String.valueOf(volume));
         params.put("ord_type", "market");
@@ -158,14 +158,14 @@ public class OrderService {
             String resBody = Objects.requireNonNull(response.body()).string();
             return ResponseEntity.ok().body(resBody);
         } catch (IOException e) {
-            throw new RuntimeException("RVN 시장가 매도 실패", e);
+            throw new RuntimeException("BTC 시장가 매도 실패", e);
         }
     }
 
     public ResponseEntity<?> buyRvn(int price) throws NoSuchAlgorithmException {
         Map<String, String> params = new HashMap<>();
 
-        params.put("market", "KRW-RVN");
+        params.put("market", "KRW-BTC");
         params.put("side", "bid");
         params.put("ord_type", "price");
         params.put("price", String.valueOf(price));
@@ -212,7 +212,7 @@ public class OrderService {
             String resBody = Objects.requireNonNull(response.body()).string();
             return ResponseEntity.ok().body(resBody);
         } catch (IOException e) {
-            throw new RuntimeException("RVN 시장가 매수 실패", e);
+            throw new RuntimeException("BTC 시장가 매수 실패", e);
         }
     }
 }
