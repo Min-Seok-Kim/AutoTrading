@@ -185,12 +185,24 @@ public class QuotationService {
 
                     Map<String, Object> buyResult = objectMapper.readValue(body, new TypeReference<>(){});
 
-                    BigDecimal executedCoin = new BigDecimal(buyResult.get("executed_volume").toString());
-                    BigDecimal lockedAmount = new BigDecimal(buyResult.get("locked").toString());
+
+
+                    BigDecimal executedCoin = new BigDecimal(
+                            Optional.ofNullable(buyResult.get("executed_volume"))
+                                    .map(Object::toString)
+                                    .orElse("0")
+                    );
+                    BigDecimal lockedAmount = new BigDecimal(
+                            Optional.ofNullable(buyResult.get("locked"))
+                                    .map(Object::toString)
+                                    .orElse("0")
+                    );
                     if (lockedAmount.compareTo(BigDecimal.ZERO) > 0) {
-                        balance = executedCoin.divide(currentPrice, 8, RoundingMode.HALF_UP); // 코인 수량 계산
+                        balance = executedCoin.divide(currentPrice, 8, RoundingMode.HALF_UP);
                         hasCoin = true;
                         log.info("✅ {} 원어치 매수 완료, 코인 수량: {}", lockedAmount, balance);
+                    } else {
+                        log.warn("매수 체결 금액이 0입니다. 응답: {}", buyResult);
                     }
                 }
 
@@ -203,14 +215,24 @@ public class QuotationService {
 
                     Map<String, Object> sellResult = objectMapper.readValue(body, new TypeReference<>(){});
 
-                    BigDecimal executedCoin = new BigDecimal(sellResult.get("executed_volume").toString());
-                    BigDecimal tradePrice = new BigDecimal(sellResult.get("price").toString());
+                    BigDecimal executedCoin = new BigDecimal(
+                            Optional.ofNullable(sellResult.get("executed_volume"))
+                                    .map(Object::toString)
+                                    .orElse("0")
+                    );
+                    BigDecimal tradePrice = new BigDecimal(
+                            Optional.ofNullable(sellResult.get("price"))
+                                    .map(Object::toString)
+                                    .orElse("0")
+                    );
 
                     BigDecimal soldAmount = executedCoin.multiply(tradePrice);
                     if (soldAmount.compareTo(BigDecimal.ZERO) > 0) {
                         log.info("✅ {} 코인 매도 완료, 매도 금액: {}", balance, soldAmount);
                         balance = BigDecimal.ZERO;
                         hasCoin = false;
+                    } else {
+                        log.warn("매도 체결 금액이 0입니다. 응답: {}", sellResult);
                     }
                 }
             }
