@@ -27,9 +27,7 @@ public class QuotationService {
     private final ObjectMapper objectMapper;
     private final AccountsService accountsService;
     private final OrderService orderService;
-    private BigDecimal previousPrice = BigDecimal.ZERO;
     private BigDecimal balance = BigDecimal.ZERO;
-    private final BigDecimal MIN_ORDER_KRW = new BigDecimal("5000");
     private final OkHttpClient client = new OkHttpClient();
 
     private final Queue<BigDecimal> recentPrices = new LinkedList<>();
@@ -38,7 +36,6 @@ public class QuotationService {
 
     /**
      * 코인 조회
-     * @return
      */
     public ResponseEntity<?> selectMarket() {
         Request request = new Request.Builder()
@@ -56,7 +53,6 @@ public class QuotationService {
 
     /**
      * 현재가 조회
-     * @return
      */
     public ResponseEntity<?> selectTicker(String market) {
         String url = "https://api.upbit.com/v1/ticker?markets=" + market;
@@ -76,7 +72,6 @@ public class QuotationService {
 
     /**
      * 호가 조회
-     * @return
      */
     public ResponseEntity<?> selectOverbook(String market) {
         Request request = new Request.Builder()
@@ -94,7 +89,6 @@ public class QuotationService {
 
     /**
      * 손익 조회
-     * @return
      */
     public ResponseEntity<?> selectProfitLoss(String market) {
         // 현재가 응답
@@ -159,7 +153,6 @@ public class QuotationService {
     /**
      * 자동 현재가 조회
      *
-     * @return
      */
     @Scheduled(fixedRate=5000)
     public void autoSelectTicker() {
